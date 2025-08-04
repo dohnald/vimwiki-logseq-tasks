@@ -4,7 +4,7 @@ change your vimwiki check list symbol.
 - [ ] unchecklist
 - [X] checklist
 
-- TODO todo list
-- DOING working list
-- DONE done list
++ TODO todo list
++ DOING working list
++ DONE done list
 ```
