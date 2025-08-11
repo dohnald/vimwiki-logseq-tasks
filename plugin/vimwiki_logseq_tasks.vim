@@ -1,6 +1,4 @@
-function! ToggleLogseqTasks()
-  let line = getline('.')
-
+function! ToggleLogseqTasks() range
   " Get task states from user configuration or use default
   let task_states = get(g:, 'vimwiki_logseq_task_states', ['TODO', 'DOING', 'DONE'])
   
@@ -10,24 +8,29 @@ function! ToggleLogseqTasks()
     let task_states = ['TODO', 'DOING', 'DONE']
   endif
 
-  " Regex to find a list marker, e.g. '  - ', '1. ', 'a. '
-  let list_marker_pattern = '^\v(\s*([-*#]+|(\d+|[a-zA-Z])\.)\s+)'
-  let list_marker = matchstr(line, list_marker_pattern)
+  " Process each line in the range
+  for line_num in range(a:firstline, a:lastline)
+    let line = getline(line_num)
+    
+    " Regex to find a list marker, e.g. '  - ', '1. ', 'a. '
+    let list_marker_pattern = '^\v(\s*([-*#]+|(\d+|[a-zA-Z])\.)\s+)'
+    let list_marker = matchstr(line, list_marker_pattern)
 
-  " If it's not a list item, just prepend task states.
-  " This could be useful for titles or paragraphs that are tasks.
-  if empty(list_marker)
-    let new_content = s:GetNextTaskState(line, task_states)
-    call setline('.', new_content)
-    return
-  endif
+    " If it's not a list item, just prepend task states.
+    " This could be useful for titles or paragraphs that are tasks.
+    if empty(list_marker)
+      let new_content = s:GetNextTaskState(line, task_states)
+      call setline(line_num, new_content)
+      continue
+    endif
 
-  " It is a list item. We operate on the content part.
-  let content = substitute(line, list_marker_pattern, '', '')
-  let new_content = s:GetNextTaskState(content, task_states)
+    " It is a list item. We operate on the content part.
+    let content = substitute(line, list_marker_pattern, '', '')
+    let new_content = s:GetNextTaskState(content, task_states)
 
-  " Reconstruct the line and set it.
-  call setline('.', list_marker . new_content)
+    " Reconstruct the line and set it.
+    call setline(line_num, list_marker . new_content)
+  endfor
 endfunction
 
 function! s:GetNextTaskState(content, task_states)
@@ -61,6 +64,7 @@ function! s:Hook() abort
 
   inoremap <buffer> <C-Space> <Esc>:call ToggleLogseqTasks()<CR>a
   nnoremap <buffer> <C-Space> :call ToggleLogseqTasks()<CR>
+  vnoremap <buffer> <C-Space> :call ToggleLogseqTasks()<CR>
 endfunction
 
 augroup MyFtpluginHook
